@@ -22,7 +22,7 @@ def hex_dump(src, lenght=16, show=True):
         return results
     
 def receive_from(connection):
-    bufffer = b""
+    buffer = b""
     connection.settimeout(5)
     try:
         while True:
@@ -62,8 +62,7 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
         local_buffer = receive_from(client_socket)
 
         if len(local_buffer):
-            line = "[<==] Received %d bytes from localhost." & len(local_buffer)
-            print(line)
+            print("[<==] Received %d bytes from localhost." % len(local_buffer))
             hex_dump(local_buffer)
 
             local_buffer = request_handler(local_buffer)
@@ -72,14 +71,14 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
         remote_buffer = receive_from(remote_socket)
 
         if len(remote_buffer):
-            print("[<==] Received %d bytes from remote." & len(remote_buffer))
+            print("[<==] Received %d bytes from remote." % len(remote_buffer))
             hex_dump(remote_buffer)
             
             # remote_buffer = response_handler(remote_buffer) not usefull yet
             remote_socket.send(remote_buffer)
             print("[==>] Sent to localhost.")
 
-        if not len(local_buffer) or not len(remote_buffer):
+        if not len(local_buffer) and not len(remote_buffer):
             client_socket.close()
             remote_socket.close()
             print("[!] No more data, closing connections...")
@@ -90,7 +89,7 @@ def server_loop(local_host, local_port, remote_host, remote_port, receive_first)
     try:
         server.bind((local_host, local_port))
     except Exception as e:
-        print('Problem on bind: %o' %e)
+        print('Problem on bind: %r' % e)
         print('[!] Failed to listen on %s:%d' %(local_host, local_port))
         sys.exit()
 
@@ -99,7 +98,7 @@ def server_loop(local_host, local_port, remote_host, remote_port, receive_first)
 
     while True:
         client_socket, addr = server.accept()
-        line = "> Received incoming connection from %s:%d" (addr[0], addr[1])
+        line = '> Received incoming connection from %s:%d' % (addr[0], addr[1])
         print(line)
 
         proxy_thread = threading.Thread(
@@ -110,7 +109,7 @@ def server_loop(local_host, local_port, remote_host, remote_port, receive_first)
         proxy_thread.start()
 
 def main():
-    if len(sys.argv[1:] != 5):
+    if len(sys.argv[1:]) != 5:
         print("Usage: ,/proxy.py [localhost] [localport]", end='')
         print("[remotehost] [remoteport] [receive_first]")
         print("Example: ./proxy.py 127.0.0.1 9000 10.12.132.1 9000 True")
@@ -123,14 +122,15 @@ def main():
     remote_port = int(sys.argv[4])
 
     receive_first = sys.argv[5]
-    if True in recieve_first:
-        recieve_first = True
+    if "True" in receive_first:
+        receive_first = True
     else:
-        recieve_first = False
+        receive_first = False
 
     server_loop(local_host, local_port, remote_host, remote_port, receive_first)
 
 if __name__ == "__main__":
     main()
 
-
+# usage example in a sudo terminal: python3 proxy.py 192.168.1.<...> 21 ftp.sun.ac.za 21 True
+# in another terminal, ftp 192.168.1.<...>
