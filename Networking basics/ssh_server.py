@@ -14,12 +14,12 @@ class Server(paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
     
     def check_auth_password(self, username, password):
-        if (username == 'name' and (password == '1234')):
+        if (username == 'loren' and (password == '1234')):
             return paramiko.AUTH_SUCCESSFUL
     
 if __name__ == '__main__':
     
-    server = '192.168.1.123'
+    server = '192.168.1.35'
     ssh_port = 2222
 
     try:
@@ -52,10 +52,11 @@ if __name__ == '__main__':
     try:
         while True:
             command = input("Enter command: ")
-            if command == 'exit':
+            if command != 'exit':
                 chan.send(command)
                 r = chan.recv(1024)
-                print(r.decode())
+                print(r.decode('utf-8', errors='replace'))
+
             else:
                 chan.send('exit')
                 print('Exiting...')
