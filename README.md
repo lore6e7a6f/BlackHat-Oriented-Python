@@ -4,7 +4,8 @@ This repository contains Python scripts inspired by topics commonly studied in c
 The exercises start from the very basics of Python and gradually progress toward more advanced, security-oriented projects.
 
 ## Structure
-- `Networking basics/` 
+- `Networking basics/`
+- `Sniffing Tools/`
 - `Web exploitation/` 
 - `Windows Trojans/` 
 - `File exfiltration/` 
