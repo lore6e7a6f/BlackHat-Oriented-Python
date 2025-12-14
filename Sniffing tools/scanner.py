@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import ipaddress
 import os
 import socket
@@ -5,13 +6,14 @@ import struct
 import sys
 import threading
 import time
+
 # target 
 SUBNET = '192.168.1.0/24'
 MESSAGE = 'PYTHONRULES!' #magic string
 
 class IP:
     def __init__(self, buff=None):
-        header = struct.unpack('<BBHHHBBH4s4s', buff)
+        header = struct.unpack('!BBHHHBBH4s4s', buff)
         self.ver = header[0] >> 4
         self.ihl = header[0] & 0xF
 
@@ -37,7 +39,7 @@ class IP:
 
 class ICMP:
     def __init__(self, buff):
-        header = struct.unpack('<BBHHH', buff)
+        header = struct.unpack('!BBHHH', buff)
 
         self.type = header[0]
         self.code = header[1]
@@ -45,10 +47,15 @@ class ICMP:
         self.id = header[3]
         self.seq = header[4]
 
+def send_udp(ip):
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.sendto(MESSAGE.encode(), (str(ip), 65212))
+
 def udp_sender():
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
-        for ip in ipaddress.ip_network(SUBNET).hosts():
-            sender.sendto(bytes(MESSAGE, 'utf8'), (str(ip), 65212))
+    ips = list(ipaddress.ip_network(SUBNET).hosts())
+
+    with ThreadPoolExecutor(max_workers=75) as executor:
+        executor.map(send_udp, ips)
 
 class Scanner:
     def __init__(self, host):
